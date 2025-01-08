@@ -15,6 +15,11 @@ struct ContentView: View {
     @State private var rainIntensity = 500.0
     @State private var rainAngle = 0.0
     
+    @State private var lightningMaxBolts = 4.0
+    @State private var lightningForkProbability = 20.0
+    
+    @State private var showingControl = true
+    
     
     let backgroundTopStops: [Gradient.Stop] = [
         .init(color: .midnightStart, location: 0),
@@ -78,21 +83,27 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            StarView()
-                .opacity(starOpacity)
+//            StarView()
+//                .opacity(starOpacity)
             
-            CloudsView(
-                thickness: cloudThickness,
-                topTint: cloudTopStops.interpolated(amount: time),
-                bottomTint: cloudBottomStops.interpolated(amount: time)
-            )
             
-            if stormType != .none {
-                StormView(type: stormType, direction: .degrees(rainAngle), strength: Int(rainIntensity))
-            }
             
-            WeatherDetailsView(tintColour: backgroundTopStops.interpolated(amount: time), residueType: stormType, residueStrength: rainIntensity)
+//            CloudsView(
+//                thickness: cloudThickness,
+//                topTint: cloudTopStops.interpolated(amount: time),
+//                bottomTint: cloudBottomStops.interpolated(amount: time)
+//            )
+            
+            LightningView(maximumBolts: Int(lightningMaxBolts), forkProbability: Int(lightningForkProbability))
+            
+//            if stormType != .none {
+//                StormView(type: stormType, direction: .degrees(rainAngle), strength: Int(rainIntensity))
+//            }
+//            
+//            WeatherDetailsView(tintColour: backgroundTopStops.interpolated(amount: time), residueType: stormType, residueStrength: rainIntensity)
         }
+        
+      
         
         .preferredColorScheme(.dark)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -101,39 +112,63 @@ struct ContentView: View {
         )
         .safeAreaInset(edge: .bottom){
             VStack {
-                Text(formattedTime)
-                    .padding(.top)
-                Picker("Thickness", selection: $cloudThickness) {
-                    ForEach(Cloud.Thickness.allCases, id: \.self) { thickness in
-                        Text(String(describing: thickness).capitalized)
+                Button("Toggle Controls") {
+                    withAnimation {
+                        showingControl.toggle()
                     }
                 }
-                .pickerStyle(.segmented)
                 
-                HStack {
-                    Text("Time:")
-                    Slider(value: $time, in: 0...1)
-                }
-                .padding()
-                
-                Picker("Precipitation", selection: $stormType) {
-                    ForEach(Storm.Contents.allCases, id: \.self) { stormType in
-                        Text(String(describing: stormType).capitalized)
+                if showingControl {
+                    VStack {
+                        Text(formattedTime)
+                            .padding(.top)
+                        
+                        Picker("Thickness", selection: $cloudThickness) {
+                            ForEach(Cloud.Thickness.allCases, id: \.self) { thickness in
+                                Text(String(describing: thickness).capitalized)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        HStack {
+                            Text("Time:")
+                            Slider(value: $time, in: 0...1)
+                        }
+                        .padding()
+                        
+                        Picker("Precipitation", selection: $stormType) {
+                            ForEach(Storm.Contents.allCases, id: \.self) { stormType in
+                                Text(String(describing: stormType).capitalized)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        HStack {
+                            Text("Intensity")
+                            Slider(value: $rainIntensity, in: 0...1000)
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack {
+                            Text("Angle:")
+                            Slider(value: $rainAngle, in: 0...90)
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack {
+                            Text("Max Bolts")
+                            Slider(value: $lightningMaxBolts, in: 0...10)
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack {
+                            Text("Fork %:")
+                            Slider(value: $lightningForkProbability, in: 0...100)
+                        }
+                        .padding(.horizontal)
                     }
+                    .transition(.move(edge:.bottom))
                 }
-                .pickerStyle(.segmented)
-
-                HStack {
-                    Text("Intensity")
-                    Slider(value: $rainIntensity, in: 0...1000)
-                }
-                .padding(.horizontal)
-
-                HStack {
-                    Text("Angle:")
-                    Slider(value: $rainAngle, in: 0...90)
-                }
-                .padding(.horizontal)
             }
             .padding(5)
             .frame(maxWidth: .infinity)
